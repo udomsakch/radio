@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <title>MCOT Radio – Mobile Fullscreen</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#101b3b" />
+
+  <!-- PWA / iOS -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="MCOT Radio">
+  <link rel="apple-touch-icon" href="logo.png">
+
+  <style>
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: #0b1733;
+      color: #ffffff;
+      overflow: hidden;
+      -webkit-user-select: none;
+      user-select: none;
+      touch-action: pan-y;
+    }
+
+    /* พื้นหลังสว่าง + มีแสง */
+    body {
+      background:
+        radial-gradient(circle at 50% 15%, rgba(88,152,255,0.9) 0%, transparent 45%),
+        radial-gradient(circle at 10% 90%, rgba(0,230,255,0.4) 0%, transparent 40%),
+        linear-gradient(135deg, #12244d 0%, #0c1735 40%, #050814 100%);
+    }
+
+    .wrapper {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+    }
+
+    /* Top bar */
+    .topbar {
+      position: absolute;
+      top: 8px;
+      left: 10px;
+      right: 10px;
+      z-index: 10;
+      padding: 8px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-radius: 18px;
+      background: rgba(7, 20, 54, 0.85);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.55);
+    }
+
+    .top-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      object-fit: cover;
+      background: rgba(255,255,255,0.2);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    .brand {
+      font-weight: 800;
+      font-size: 1rem;
+      color: #f5f7ff;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+    }
+
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      background: linear-gradient(135deg, #ff4b4b, #ff9100);
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #fff;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+    }
+    .dot { font-size: 0.7rem; }
+
+    /* Card */
+    .card-area {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 60px 14px 40px;
+    }
+
+    .card {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      max-height: 520px;
+      margin: auto;
+      border-radius: 26px;
+      padding: 22px 18px 24px;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(130,177,255,0.8) 0%, transparent 55%),
+        linear-gradient(145deg, rgba(13,36,92,0.98), rgba(7,24,66,0.98));
+      border: 1px solid rgba(255,255,255,0.26);
+      box-shadow:
+        0 22px 55px rgba(0,0,0,0.7),
+        0 0 0 1px rgba(80,120,255,0.35);
+      backdrop-filter: blur(16px);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 12px;
+      color: #f9fbff;
+    }
+
+    /* โลโก้สถานีใน UI */
+    .station-logo {
+      width: 96px;
+      height: 96px;
+      margin: 0 auto 8px;
+      border-radius: 24px;
+      object-fit: cover;
+      background: rgba(0,0,0,0.25);
+      box-shadow:
+        0 8px 22px rgba(0,0,0,0.7),
+        0 0 14px rgba(150,190,255,0.8);
+    }
+
+    .label {
+      font-size: .76rem;
+      letter-spacing: .18em;
+      opacity: .88;
+      text-transform: uppercase;
+      color: #d0ddff;
+    }
+
+    .title {
+      font-size: 2rem;
+      font-weight: 900;
+      margin: 4px 0;
+      color: #ffffff;
+      text-shadow:
+        0 3px 12px rgba(0,0,0,0.55),
+        0 0 6px rgba(0,0,0,0.45);
+    }
+
+    .sub {
+      font-size: .88rem;
+      color: #d7e3ff;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    }
+
+    .eq {
+      height: 40px;
+      display: flex;
+      justify-content: center;
+      gap: 4px;
+      margin: 10px 0 6px;
+    }
+    .eq span {
+      width: 6px;
+      border-radius: 999px;
+      background: #ffffff;
+      box-shadow: 0 0 10px rgba(255,255,255,0.7);
+      animation: bounce 1.2s infinite ease-in-out var(--d,0s);
+    }
+    @keyframes bounce {
+      0%,100% { height:12px; opacity:.6; }
+      50%     { height:40px; opacity:1; }
+    }
+
+    .info {
+      margin-top: 2px;
+      font-size: .82rem;
+      color: #c8d5ff;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.7);
+    }
+    .info + .info { margin-top: 4px; }
+
+    .swipe-hint {
+      position: absolute;
+      inset: 0;
+      padding: 0 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+      opacity: .22;
+      font-size: 1.7rem;
+      color: #c3d4ff;
+      text-shadow: 0 2px 6px rgba(0,0,0,0.7);
+    }
+
+    .play-btn {
+      position: absolute;
+      left: 50%;
+      top: calc(50% + 48px);
+      width: 78px;
+      height: 78px;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      border: none;
+      color: #fff;
+      font-size: 2rem;
+      background: radial-gradient(circle at 30% 30%, #ffffff 0%, #d0e4ff 25%, #4f6dff 70%, #1b2462 100%);
+      box-shadow:
+        0 18px 40px rgba(0,0,0,0.8),
+        0 0 18px rgba(130,177,255,0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+    }
+    .play-btn.hidden { display:none; }
+
+    .toast {
+      position: absolute;
+      left: 50%;
+      top: 12px;
+      transform: translateX(-50%) translateY(-10px);
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(9,18,46,0.9);
+      border: 1px solid rgba(187,206,255,0.7);
+      color: #e4ebff;
+      font-size: .8rem;
+      font-weight: 600;
+      opacity: 0;
+      pointer-events: none;
+      transition: 0.25s;
+      z-index: 30;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .note {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(4,10,30,0.9);
+      font-size: .86rem;
+      display: none;
+      z-index: 25;
+      border: 1px solid rgba(170,192,255,0.8);
+      color: #e0e7ff;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    }
+    .note.show { display:block; }
+
+    audio { display:none; }
+
+    @media (min-width: 768px) {
+      .card-area { padding-top: 70px; }
+      .card {
+        max-width: 640px;
+        max-height: 460px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper" id="swipeArea">
+    <div class="topbar">
+      <div class="top-left">
+        <img src="logo.png" class="logo" alt="MCOT">
+        <span class="brand">MCOT Radio</span>
+      </div>
+      <div class="live-badge"><span class="dot">●</span> LIVE</div>
+    </div>
+
+    <div class="card-area">
+      <div class="card" id="cardTap">
+        <!-- โลโก้สถานี -->
+        <img id="stationLogo" class="station-logo" src="logo.png" alt="Station Logo">
+
+        <div class="label">NOW PLAYING</div>
+        <div id="nowName" class="title">–</div>
+        <div id="nowSub" class="sub">กำลังเล่น...</div>
+
+        <div class="eq">
+          <span style="--d:0s"></span>
+          <span style="--d:.15s"></span>
+          <span style="--d:.3s"></span>
+          <span style="--d:.45s"></span>
+          <span style="--d:.6s"></span>
+        </div>
+
+        <div id="prevInfo" class="info">ก่อนหน้า: –</div>
+        <div id="nextInfo" class="info">ถัดไป: –</div>
+
+        <div class="swipe-hint">
+          <div>◀</div>
+          <div>▶</div>
+        </div>
+      </div>
+
+      <button id="playButton" class="play-btn">▶</button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <div id="note" class="note">Paused</div>
+
+  <audio id="player" preload="none"></audio>
+
+  <script>
+  (function(){
+
+    /* ==== สถานี + โลโก้ ==== */
+    const stations = [
+      { name: 'ลูกทุ่งมหานคร',        url: 'http://radio-02-cdn.mcot.net:8000/fm95',    logo: 'fm95.png' },
+      { name: 'คลื่นความคิด',         url: 'http://radio-02-cdn.mcot.net:8000/fm965_2', logo: 'fm965.png' },
+      { name: 'Active Radio',          url: 'http://radio-02-cdn.mcot.net:8000/fm99',    logo: 'fm99.png' },
+      { name: 'News Network',          url: 'http://radio-02-cdn.mcot.net:8000/fm1005',  logo: 'fm1005.png' },
+      { name: 'SMOOTH FM 105.5',       url: 'http://radio-02-cdn.mcot.net:8000/fm1055',  logo: 'fm1055.png' },
+      { name: 'MET 107',               url: 'http://radio-02-cdn.mcot.net:8000/fm107',   logo: 'fm107.png' },
+
+      { name: 'อสมท จ.เชียงราย',     url: 'http://rstream.mcot.net:9060/;stream.mp3', logo: 'logo.png' },
+      { name: 'อสมท จ.สุโขทัย',      url: 'http://rstream.mcot.net:9080/;stream.mp3', logo: 'logo.png' },
+      { name: 'อสมท จ.อุบลราชธานี', url: 'http://rstream.mcot.net:9058/;stream.mp3', logo: 'logo.png' },
+      { name: 'อสมท จ.ยะลา',         url: 'http://rstream.mcot.net:9102/;stream.mp3', logo: 'logo.png' }
+    ];
+
+    const audioEl     = document.getElementById("player");
+    const nowNameEl   = document.getElementById("nowName");
+    const prevEl      = document.getElementById("prevInfo");
+    const nextEl      = document.getElementById("nextInfo");
+    const playBtn     = document.getElementById("playButton");
+    const toastEl     = document.getElementById("toast");
+    const noteEl      = document.getElementById("note");
+    const cardTap     = document.getElementById("cardTap");
+    const swipeArea   = document.getElementById("swipeArea");
+    const stationLogo = document.getElementById("stationLogo");
+
+    let current = 0;
+    let userInteracted = false;
+    let toastTimer = null;
+    let fsRequested = false;
+
+    function tryFullscreen() {
+      if (fsRequested) return;
+      fsRequested = true;
+      const el = document.documentElement;
+      try {
+        if (el.requestFullscreen) el.requestFullscreen();
+        else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+        else if (el.msRequestFullscreen) el.msRequestFullscreen();
+      } catch(e){}
+    }
+
+    function toast(msg){
+      toastEl.textContent = msg;
+      toastEl.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toastEl.classList.remove("show"), 2000);
+    }
+
+    function showNote(msg){
+      noteEl.textContent = msg;
+      noteEl.classList.add("show");
+      setTimeout(()=>noteEl.classList.remove("show"),1200);
+    }
+
+    const hasMS = "mediaSession" in navigator;
+
+    function updateMediaSession(){
+      if (!hasMS) return;
+      const st = stations[current];
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: st.name,
+        artist: "MCOT Radio",
+        album: "MCOT Network",
+        artwork: [
+          { src: st.logo, sizes: "96x96",   type: "image/png" },
+          { src: st.logo, sizes: "128x128", type: "image/png" },
+          { src: st.logo, sizes: "192x192", type: "image/png" },
+          { src: st.logo, sizes: "256x256", type: "image/png" },
+          { src: st.logo, sizes: "512x512", type: "image/png" }
+        ]
+      });
+      navigator.mediaSession.playbackState = audioEl.paused ? "paused" : "playing";
+    }
+
+    function initMSHandlers(){
+      if (!hasMS) return;
+      navigator.mediaSession.setActionHandler("play", ()=> togglePlay(true));
+      navigator.mediaSession.setActionHandler("pause",()=> togglePlay(true));
+      navigator.mediaSession.setActionHandler("stop", ()=> togglePlay(true));
+      navigator.mediaSession.setActionHandler("nexttrack", ()=> swipeStation(1, true));
+      navigator.mediaSession.setActionHandler("previoustrack", ()=> swipeStation(-1, true));
+    }
+
+    function setSources(url){
+      while (audioEl.firstChild) audioEl.removeChild(audioEl.firstChild);
+      audioEl.removeAttribute("src");
+
+      if (/\.aac/i.test(url)) {
+        const s = document.createElement("source");
+        s.src = url; s.type = "audio/aac";
+        audioEl.appendChild(s);
+      } else if (/\.mp3/i.test(url) || /;stream\.mp3/i.test(url)) {
+        const s = document.createElement("source");
+        s.src = url; s.type = "audio/mpeg";
+        audioEl.appendChild(s);
+      } else {
+        audioEl.src = url;
+      }
+    }
+
+    function updateHUD(){
+      const st   = stations[current];
+      const prev = (current - 1 + stations.length) % stations.length;
+      const next = (current + 1) % stations.length;
+
+      nowNameEl.textContent = st.name;
+      prevEl.textContent    = "ก่อนหน้า: " + stations[prev].name;
+      nextEl.textContent    = "ถัดไป: "   + stations[next].name;
+      stationLogo.src       = st.logo || "logo.png";
+      stationLogo.alt       = st.name;
+    }
+
+    function tuneTo(idx, autoPlay){
+      current = (idx + stations.length) % stations.length;
+      const st = stations[current];
+
+      setSources(st.url);
+      updateHUD();
+      toast("กำลังเล่น: " + st.name);
+
+      audioEl.load();
+      updateMediaSession();
+
+      if (autoPlay && userInteracted) {
+        audioEl.play().then(()=>{
+          playBtn.classList.add("hidden");
+          updateMediaSession();
+        }).catch(()=>{});
+      } else {
+        playBtn.classList.remove("hidden");
+      }
+    }
+
+    function togglePlay(fromMediaSession=false){
+      userInteracted = true;
+      if (!fromMediaSession) tryFullscreen();
+
+      if (audioEl.paused){
+        audioEl.play().then(()=>{
+          playBtn.classList.add("hidden");
+          noteEl.classList.remove("show");
+          updateMediaSession();
+        }).catch(()=>{});
+      } else {
+        audioEl.pause();
+        playBtn.classList.remove("hidden");
+        showNote("Paused");
+        updateMediaSession();
+      }
+    }
+
+    let startX=null, startY=null;
+    const SWIPE_X = 60;
+    const SWIPE_Y = 80;
+
+    function onStart(e){
+      const t = e.changedTouches?.[0];
+      if (!t) return;
+      startX = t.clientX;
+      startY = t.clientY;
+      tryFullscreen();
+    }
+
+    function onEnd(e){
+      const t = e.changedTouches?.[0];
+      if (!t) return;
+      const dx = t.clientX - startX;
+      const dy = t.clientY - startY;
+      if (Math.abs(dy) > SWIPE_Y) return;
+      if (Math.abs(dx) < SWIPE_X) return;
+
+      userInteracted = true;
+      tryFullscreen();
+      if (dx < 0) swipeStation(1, true);
+      else        swipeStation(-1, true);
+    }
+
+    function swipeStation(offset, autoPlay){
+      tuneTo(current + offset, autoPlay);
+    }
+
+    playBtn.addEventListener("click", ()=> togglePlay(false));
+    cardTap.addEventListener("click", ()=> togglePlay(false));
+
+    swipeArea.addEventListener("touchstart", onStart, {passive:true});
+    swipeArea.addEventListener("touchend",   onEnd,   {passive:true});
+
+    audioEl.addEventListener("playing", ()=> updateMediaSession());
+    audioEl.addEventListener("pause",   ()=> updateMediaSession());
+    audioEl.addEventListener("error",   ()=> showNote("เชื่อมต่อสัญญาณไม่ได้"));
+
+    window.addEventListener("load", ()=>{
+      tuneTo(0, false);
+      initMSHandlers();
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("sw.js").catch(e=>console.log("SW Failed:",e));
+      }
+    });
+
+  })();
+  </script>
+</body>
+</html>
